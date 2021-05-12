@@ -19,15 +19,16 @@ requirements = [
     'scipy',
     'torch>=1.1',
     'tqdm',
+    'SimpleITK',
 ]
 
 
 # New versions of Slicer need SimpleITK 2, but SimpleITK is preferred
 # because of https://github.com/SimpleITK/SimpleITK/issues/1239
-try:
-    import SimpleITK  # noqa: F401
-except ImportError:
-    requirements.append('SimpleITK<2')
+# try:
+#     import SimpleITK  # noqa: F401
+# except ImportError:
+#     requirements.append('SimpleITK<2')
 
 
 setup(
