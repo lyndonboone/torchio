@@ -12,7 +12,7 @@ from .augmentation.composition import Compose
 
 from .augmentation.spatial import RandomFlip, Flip
 from .augmentation.spatial import RandomAffine, Affine
-from .augmentation.spatial import RandomAnisotropy
+from .augmentation.spatial import RandomAnisotropy, RandomIsoDownsample
 from .augmentation.spatial import RandomElasticDeformation, ElasticDeformation
 
 from .augmentation.intensity import RandomSwap, Swap
@@ -57,6 +57,7 @@ __all__ = [
     'RandomAffine',
     'Affine',
     'RandomAnisotropy',
+    'RandomIsoDownsample',
     'RandomElasticDeformation',
     'ElasticDeformation',
     'RandomSwap',

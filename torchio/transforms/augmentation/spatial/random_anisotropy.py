@@ -114,3 +114,70 @@ class RandomAnisotropy(RandomTransform):
         )
         upsampled = upsample(downsampled)
         return upsampled
+
+
+class RandomIsoDownsample(RandomTransform):
+    r"""Downsample an image isotropically and upsample to initial space.
+
+    This transform simulates an image that has been acquired at a lower resolution
+    and upsampled back to a lower spacing.
+
+    Args:
+        downsampling: Downsampling factor :math:`m \gt 1`. If a tuple
+            :math:`(a, b)` is provided then :math:`m \sim \mathcal{U}(a, b)`.
+        image_interpolation: Image interpolation used to upsample the image
+            back to its initial spacing. Downsampling is performed using
+            nearest neighbor interpolation. See :ref:`Interpolation` for
+            supported interpolation types.
+        scalars_only: Apply only to instances of :class:`torchio.ScalarImage`.
+            This is useful when the segmentation quality needs to be kept,
+            as in `Billot et al. <billot>`_.
+        **kwargs: See :class:`~torchio.transforms.Transform` for additional
+            keyword arguments.
+    """
+
+    def __init__(
+            self,
+            downsampling: TypeRangeFloat = (1.5, 5),
+            image_interpolation: str = 'linear',
+            scalars_only: bool = True,
+            **kwargs
+            ):
+        super().__init__(**kwargs)
+        self.downsampling_range = self._parse_range(
+            downsampling, 'downsampling', min_constraint=1)
+        parsed_interpolation = self.parse_interpolation(image_interpolation)
+        self.image_interpolation = parsed_interpolation
+        self.scalars_only = scalars_only
+
+    def get_params(
+            self,
+            downsampling_range: Tuple[float, float],
+            ) -> List[bool]:
+        downsampling = self.sample_uniform(*downsampling_range).item()
+        return downsampling
+
+    def apply_transform(self, subject: Subject) -> Subject:
+        downsampling = self.get_params(
+            self.downsampling_range,
+        )
+        target_spacing = list(subject.spacing)
+        target_spacing = [spacing * downsampling for spacing in target_spacing]
+
+        arguments = {
+            'image_interpolation': 'nearest',
+            'scalars_only': self.scalars_only,
+        }
+
+        downsample = Resample(
+            tuple(target_spacing),
+            **self.add_include_exclude(arguments)
+        )
+        downsampled = downsample(subject)
+        upsample = Resample(
+            subject.get_first_image(),
+            image_interpolation=self.image_interpolation,
+            scalars_only=self.scalars_only,
+        )
+        upsampled = upsample(downsampled)
+        return upsampled
